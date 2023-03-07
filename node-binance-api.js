@@ -8,6 +8,7 @@
  * @module jaggedsoft/node-binance-api
  * @return {object} instance to class object */
 let api = function Binance( options = {} ) {
+    let bookTickersOnCloseCallback = null
     if ( !new.target ) return new api( options ); // Legacy support for calling the constructor without 'new'
     let Binance = this; // eslint-disable-line consistent-this
     const WebSocket = require( 'ws' );
@@ -841,6 +842,7 @@ let api = function Binance( options = {} ) {
                 Binance.options.log( 'Futures WebSocket reconnect error: ' + error.message );
             }
         }
+        bookTickersOnCloseCallback(reconnect, code, reason)
     };
 
     /**
@@ -852,6 +854,8 @@ let api = function Binance( options = {} ) {
         Binance.options.log( 'Futures WebSocket error: ' + this.endpoint +
           ( error.code ? ' (' + error.code + ')' : '' ) +
           ( error.message ? ' ' + error.message : '' ) );
+          bookTickersOnCloseCallback(reconnect, code, reason)
+
     };
 
     /**
@@ -2584,7 +2588,10 @@ let api = function Binance( options = {} ) {
     const isArrayUnique = array => {
         return new Set( array ).size === array.length;
     };
-    return {
+    return {///////////////
+        bookTickersOnCloseCallback:function (callback) {
+            bookTickersOnCloseCallback = callback
+        },
         /**
         * Gets depth cache for given symbol
         * @param {symbol} symbol - get depch cache for this symbol
